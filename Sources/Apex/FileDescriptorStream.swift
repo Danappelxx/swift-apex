@@ -1,4 +1,5 @@
 import CLibvenice
+import Axis
 
 public let standardInputStream = FileDescriptorStream(fileDescriptor: STDIN_FILENO)
 public let standardOutputStream = FileDescriptorStream(fileDescriptor: STDOUT_FILENO)
@@ -24,38 +25,36 @@ public final class FileDescriptorStream : Stream {
 }
 
 extension FileDescriptorStream {
-    public func write(_ data: Data, length: Int, deadline: Double) throws -> Int {
+    public func write(_ buffer: UnsafeBufferPointer<Byte>, deadline: Double) throws {
         try ensureFileIsOpen()
 
-        let bytesWritten = data.withUnsafeBytes {
-            filewrite(file, $0, length, deadline.int64milliseconds)
-        }
+        let bytesWritten = filewrite(file, buffer.baseAddress, buffer.count, deadline.int64milliseconds)
 
         if bytesWritten == 0 {
             try ensureLastOperationSucceeded()
         }
-
-        return bytesWritten
     }
 
-    public func read(into buffer: inout Data, length: Int, deadline: Double) throws -> Int {
+    public func read(into readBuffer: UnsafeMutableBufferPointer<Byte>, deadline: Double) throws -> UnsafeBufferPointer<Byte> {
         try ensureFileIsOpen()
 
-        let bytesRead = buffer.withUnsafeMutableBytes {
-            filereadlh(file, $0, 1, length, deadline.int64milliseconds)
-        }
+        let bytesRead = filereadlh(file, readBuffer.baseAddress, 1, readBuffer.count, deadline.int64milliseconds)
 
         if bytesRead == 0 {
             try ensureLastOperationSucceeded()
         }
 
-        return bytesRead
+        return UnsafeBufferPointer(start: readBuffer.baseAddress, count: bytesRead)
     }
 
     public func flush(deadline: Double) throws {
         try ensureFileIsOpen()
         fileflush(file, deadline.int64milliseconds)
         try ensureLastOperationSucceeded()
+    }
+
+    public func open(deadline: Double) throws {
+        // file already open
     }
 
     public func close() {
@@ -71,4 +70,3 @@ extension FileDescriptorStream {
         }
     }
 }
-

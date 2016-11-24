@@ -7,6 +7,7 @@ let package = Package(
         Target(name: "ApexExample", dependencies: ["Apex"]),
     ],
     dependencies: [
-        .Package(url: "https://github.com/VeniceX/CLibvenice.git", Version(0, 6, 2)),
+        .Package(url: "https://github.com/Zewo/Axis.git", majorVersion: 0, minor: 14),
+        .Package(url: "https://github.com/Zewo/Venice.git", majorVersion: 0, minor: 14),
     ]
 )
